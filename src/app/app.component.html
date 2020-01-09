@@ -1,0 +1,168 @@
+<div class="content" role="main">
+
+    <h1>Movie Seat Selection</h1>
+    <div class="container">
+    
+        <div class="indorse-reg">
+            
+            
+            <ul class="seat_indorse">
+                <li class="smallBox greenBox">Your Selection</li>
+    
+                <li class="smallBox redBox">Reserved</li>
+    
+                <li class="smallBox emptyBox">Avalaible</li>
+            </ul>
+            
+            <!-- seat layout -->
+            <div class="seatStructure txt-center" style="overflow-x:auto;">
+                <alert id="notification"></alert>
+                <table id="seatsBlock">
+                    <tr>
+                        <td></td>
+                        <td *ngFor="let colNumber of printColsNumber();">{{colNumber}}</td>
+                        
+                    </tr>
+                    <tr *ngFor="let rowNumber of printRowsNumber();" [ngClass]="{'seatVGap': rowNumber===''}">
+                        <td *ngIf="rowNumber!==''">{{rowNumber}}</td>
+                        <td *ngFor="let colNumber of printColsNumber();" [ngClass]="{'seatGap': colNumber==='','d-none':rowNumber==''}">
+                            
+                            <div *ngIf="colNumber!==''" style="z-index:100; position:relative;" class="overlay">
+                                <span  (click)="seatClicked(rowNumber,colNumber);" class="smallBox {{seatStatus(rowNumber+''+colNumber)}}"></span>
+                            </div>
+                            <!-- <input *ngIf="colNumber!==''" type="checkbox" class="seats" value="{{rowNumber}}{{colNumber}}"> -->
+                        </td>
+                        
+                    </tr>
+    
+                    
+                </table>
+    
+                <div class="screen">
+                    <h2 class="wthree">Screen this way</h2>
+                </div>
+                <button *ngIf="selectedSeat.length>0" (click)="confirmBooking()">Confrim Booking</button>
+            </div>
+            <!-- //seat layout -->
+            
+            
+        </div>
+    </div>
+
+</div>
+
+<ng-template #confimTcktModalTmp>
+
+            <div class="modal-header">
+                <h4 id="dialog-static-name1" class="modal-title pull-left">Confirm Booking</h4>
+                <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal m-t-30" [formGroup]="bookingForm" (ngSubmit)="onSubmit()" autocomplete="off">
+                    <fieldset>
+                        
+                        
+                        <div class="form-group">
+                            <label>Email
+                                <span class="required">*</span>
+                            </label>
+                            <input class="form-control" placeholder="Email" name="emailId" type="text" formControlName="emailId" [ngClass]="{ 'is-invalid': submitted && f.emailId.errors }">
+                            <div *ngIf="submitted && f.emailId.errors" class="invalid-feedback">
+                                <div *ngIf="f.emailId.errors.required">email is required</div>
+                                <div *ngIf="f.emailId.errors.email">Please provide valid email</div>
+                                
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <input type="hidden" name="user_id" value="">
+                            <label>Number of Seats
+                                <span class="required">*</span>
+                            </label>
+                            {{selectedSeat.length}}
+                        </div>
+                        <div class="form-group">
+                            <input type="hidden" name="user_id" value="">
+                            <label>Number of Seats
+                                <span class="required">*</span>
+                            </label>
+                            <span *ngFor="let seatNumber of selectedSeat;">
+                                {{seatNumber}}
+                            </span>
+                        </div>
+                        
+                
+                
+                        <button [disabled]="loading" class="btn btn-lg btn-success col-lg-offset-5 col-md-offset-5 col-sm-offset-5 col-xs-offset-4">
+                            <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                            Confirm
+                        </button>
+                
+                    </fieldset>
+                </form>
+                
+            </div>
+        
+</ng-template>
+
+
+<ng-template #cancelTcktModalTmp>
+            <div class="modal-header">
+                <h4 id="dialog-static-name2" class="modal-title pull-left">Cancel Booking</h4>
+                <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Enter email id , with whome you have booked your seat.</p>
+                <form class="form-horizontal m-t-30" [formGroup]="cancelBookingForm" (ngSubmit)="enquireBooking()" autocomplete="off">
+                    <fieldset>
+                
+                
+                        <div class="form-group">
+                            <label>Email
+                                <span class="required">*</span>
+                            </label>
+                            <input class="form-control" placeholder="Email" name="emailId" type="text" formControlName="emailId" [ngClass]="{ 'is-invalid': submitted && cancelFormCtrls.emailId.errors }">
+                            <div *ngIf="submitted && cancelFormCtrls.emailId.errors" class="invalid-feedback">
+                                <div *ngIf="cancelFormCtrls.emailId.errors.required">email is required</div>
+                                <div *ngIf="cancelFormCtrls.emailId.errors.email">Please provide valid email</div>
+                
+                            </div>
+                        </div>
+                        <button [disabled]="loading" class="btn btn-lg btn-success col-lg-offset-5 col-md-offset-5 col-sm-offset-5 col-xs-offset-4">
+                            <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                            Get Seat Info
+                        </button>
+                        
+                    </fieldset>
+                </form>
+                <table *ngIf="ticktObjectToCancel" class="Displaytable indorse-table" width="100%">
+                    <tr>
+                        <td>Seats</td>
+                        <td>
+                            Cancel
+                        </td>
+                    </tr>
+                    <tr *ngFor="let seatObj of ticktObjectToCancel.tickets;">
+                        <td>{{seatObj.seatNumber}}</td>
+                        <td>
+                            <input type="checkbox" value="{{seatObj.seatNumber}}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        
+                        <td rowspan="2">
+                            <button class="btn btn-lg btn-danger col-lg-offset-5 col-md-offset-5 col-sm-offset-5 col-xs-offset-4">
+                                Confirm Canceletion
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        
+</ng-template>
+
+
+<router-outlet></router-outlet>
